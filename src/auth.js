@@ -7,7 +7,7 @@
 //    son identité, sans avoir à renvoyer le mot de passe.
 // 3. Le token expire après 7 jours ; l'utilisateur doit alors se reconnecter.
 
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../db/pool");
 
