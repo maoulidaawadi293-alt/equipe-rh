@@ -9,8 +9,7 @@
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const pool = require("../db/pool");
-
+const pool = require("./db/pool");
 const JWT_SECRET = process.env.JWT_SECRET;
 const TOKEN_EXPIRY = "7d";
 const SALT_ROUNDS = 10; // coût du chiffrement : plus haut = plus sûr mais plus lent
