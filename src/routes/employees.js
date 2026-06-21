@@ -2,13 +2,11 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const pool = require("../db/pool");
 const { requireAuth, requireEmployer } = require("../middleware/requireAuth");
-const { sendWelcomeEmail } = require("../email");
 
 const router = express.Router();
 const SALT_ROUNDS = 10;
 
 function generateTempPassword() {
-  // Mot de passe temporaire lisible, ex: "Rk4mP9qX"
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
   let pwd = "";
   for (let i = 0; i < 10; i++) {
@@ -17,7 +15,6 @@ function generateTempPassword() {
   return pwd;
 }
 
-// Liste tous les salariés (employeur uniquement)
 router.get("/", requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
@@ -33,7 +30,6 @@ router.get("/", requireAuth, async (req, res) => {
   }
 });
 
-// Récupère la fiche du salarié connecté
 router.get("/me", requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
@@ -51,7 +47,6 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 });
 
-// Crée un nouveau salarié + son compte de connexion (employeur uniquement)
 router.post("/", requireEmployer, async (req, res) => {
   const { name, role_title, team, email, color, leave_quota, rtt_quota } = req.body;
   if (!name || !role_title || !team || !email) {
@@ -85,9 +80,7 @@ router.post("/", requireEmployer, async (req, res) => {
 
     await client.query("COMMIT");
 
-    const emailSent = await sendWelcomeEmail({ to: email, name, password: tempPassword });
-
-    res.status(201).json({ ...employeeResult.rows[0], email, emailSent });
+    res.status(201).json({ ...employeeResult.rows[0], email, tempPassword });
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Erreur creation employee:", err);
@@ -97,7 +90,6 @@ router.post("/", requireEmployer, async (req, res) => {
   }
 });
 
-// Modifie un salarié existant (employeur uniquement)
 router.put("/:id", requireEmployer, async (req, res) => {
   const { id } = req.params;
   const { name, role_title, team, color, leave_quota, rtt_quota } = req.body;
@@ -124,7 +116,6 @@ router.put("/:id", requireEmployer, async (req, res) => {
   }
 });
 
-// Supprime un salarié (employeur uniquement)
 router.delete("/:id", requireEmployer, async (req, res) => {
   const { id } = req.params;
   try {

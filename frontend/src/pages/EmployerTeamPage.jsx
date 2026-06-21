@@ -7,7 +7,7 @@ export default function EmployerTeamPage() {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [successMsg, setSuccessMsg] = useState(null);
+  const [lastCreated, setLastCreated] = useState(null); // { name, email, tempPassword }
 
   const [form, setForm] = useState({ name: "", role_title: "", team: "", email: "" });
 
@@ -32,16 +32,12 @@ export default function EmployerTeamPage() {
     if (!form.name || !form.role_title || !form.team || !form.email) return;
     setSaving(true);
     setError(null);
-    setSuccessMsg(null);
+    setLastCreated(null);
     try {
       const created = await api.createEmployee(form);
       setForm({ name: "", role_title: "", team: "", email: "" });
       setShowForm(false);
-      setSuccessMsg(
-        created.emailSent
-          ? `${created.name} a été ajouté(e) et a reçu ses identifiants par email.`
-          : `${created.name} a été ajouté(e), mais l'envoi de l'email a échoué — vérifie l'adresse.`
-      );
+      setLastCreated({ name: created.name, email: created.email, tempPassword: created.tempPassword });
       await loadEmployees();
     } catch (err) {
       setError(err.message);
@@ -61,12 +57,24 @@ export default function EmployerTeamPage() {
     }
   }
 
+  function buildMailtoLink({ name, email, tempPassword }) {
+    const subject = "Vos identifiants EquipeRH";
+    const body =
+      `Bonjour ${name},\n\n` +
+      `Un compte vient d'être créé pour vous sur EquipeRH.\n\n` +
+      `Email : ${email}\n` +
+      `Mot de passe temporaire : ${tempPassword}\n\n` +
+      `Vous pourrez changer ce mot de passe une fois connecté.\n\n` +
+      `Cordialement.`;
+    return `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
   return (
     <div style={pageStyle}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1F1D1A", margin: 0 }}>Équipe</h2>
         <button
-          onClick={() => { setShowForm((s) => !s); setSuccessMsg(null); }}
+          onClick={() => { setShowForm((s) => !s); setLastCreated(null); }}
           style={{
             background: "#1F1D1A", color: "white", border: "none", borderRadius: 9,
             padding: "9px 16px", fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
@@ -82,9 +90,26 @@ export default function EmployerTeamPage() {
         </div>
       )}
 
-      {successMsg && (
-        <div style={{ background: "#F0FDF4", color: "#16A34A", fontSize: 13, padding: "8px 12px", borderRadius: 8, marginBottom: 16 }}>
-          {successMsg}
+      {lastCreated && (
+        <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 14, padding: 18, marginBottom: 20 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: "#16A34A", marginBottom: 8 }}>
+            {lastCreated.name} a été ajouté(e) !
+          </div>
+          <div style={{ fontSize: 13, color: "#1F1D1A", marginBottom: 4 }}>
+            Email : <strong>{lastCreated.email}</strong>
+          </div>
+          <div style={{ fontSize: 13, color: "#1F1D1A", marginBottom: 14 }}>
+            Mot de passe temporaire : <strong>{lastCreated.tempPassword}</strong>
+          </div>
+          <a
+            href={buildMailtoLink(lastCreated)}
+            style={{
+              display: "inline-block", background: "#16A34A", color: "white", textDecoration: "none",
+              borderRadius: 9, padding: "9px 16px", fontSize: 13.5, fontWeight: 600,
+            }}
+          >
+            ✉️ Envoyer les identifiants par email
+          </a>
         </div>
       )}
 
@@ -118,7 +143,7 @@ export default function EmployerTeamPage() {
             />
           </div>
           <p style={{ fontSize: 12, color: "#8A8578", margin: "0 0 12px" }}>
-            Un compte sera créé automatiquement et les identifiants envoyés par email à cette adresse.
+            Un compte sera créé automatiquement avec un mot de passe temporaire.
           </p>
           <button
             type="submit"
@@ -129,7 +154,7 @@ export default function EmployerTeamPage() {
               cursor: saving ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: saving ? 0.6 : 1,
             }}
           >
-            {saving ? "Création…" : "Créer le compte et envoyer l'email"}
+            {saving ? "Création…" : "Créer le compte"}
           </button>
         </form>
       )}
