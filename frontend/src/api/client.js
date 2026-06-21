@@ -60,7 +60,9 @@ export const api = {
   // Plannings
   teamSchedule: (weekStart) => apiRequest(`/schedules/team?week_start=${weekStart}`),
   mySchedule: (weekStart) => apiRequest(`/schedules/me?week_start=${weekStart}`),
-  saveScheduleSlot: (slot) => apiRequest("/schedules", { method: "PUT", body: slot }),
+  createScheduleSlot: (slot) => apiRequest("/schedules", { method: "POST", body: slot }),
+  updateScheduleSlot: (id, slot) => apiRequest(`/schedules/${id}`, { method: "PUT", body: slot }),
+  deleteScheduleSlot: (id) => apiRequest(`/schedules/${id}`, { method: "DELETE" }),
 };
 
 export function saveToken(token) {

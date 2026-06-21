@@ -47,8 +47,8 @@ export default function MySchedulePage() {
     }
   }
 
-  function findEntry(dayOfWeek) {
-    return entries.find((e) => e.day_of_week === dayOfWeek);
+  function findEntries(dayOfWeek) {
+    return entries.filter((e) => e.day_of_week === dayOfWeek);
   }
 
   function formatWeekLabel() {
@@ -78,19 +78,34 @@ export default function MySchedulePage() {
       {!loading && (
         <div style={{ background: "white", border: "1px solid #E7E5E1", borderRadius: 14, padding: 6 }}>
           {DAYS.map((dayName, dayIndex) => {
-            const entry = findEntry(dayIndex);
+            const dayEntries = findEntries(dayIndex);
             return (
-              <div key={dayIndex} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid #F0EEE9" }}>
-                <span style={{ fontSize: 13.5, fontWeight: 600, color: "#1F1D1A" }}>{dayName}</span>
-                {entry?.is_off ? (
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "#DC2626", background: "#FEF2F2", padding: "4px 10px", borderRadius: 100 }}>Repos</span>
-                ) : entry ? (
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "#1F1D1A", background: "#F0EEE9", padding: "4px 10px", borderRadius: 100 }}>
-                    {entry.start_time?.slice(0, 5)} – {entry.end_time?.slice(0, 5)}
-                  </span>
-                ) : (
+              <div key={dayIndex} style={{ padding: "12px 14px", borderBottom: "1px solid #F0EEE9" }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: "#1F1D1A", marginBottom: dayEntries.length ? 8 : 0 }}>{dayName}</div>
+                {dayEntries.length === 0 && (
                   <span style={{ fontSize: 12.5, color: "#A8A398" }}>Non renseigné</span>
                 )}
+                {dayEntries.map((slot) => (
+                  <div key={slot.id} style={{ background: slot.is_off ? "#FEF2F2" : "#F8FAFF", borderRadius: 9, padding: "8px 12px", marginBottom: 6 }}>
+                    {slot.is_off ? (
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: "#DC2626" }}>Repos</span>
+                    ) : (
+                      <>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: "#1F1D1A" }}>
+                          {slot.start_time?.slice(0, 5)} – {slot.end_time?.slice(0, 5)}
+                        </div>
+                        {slot.mission && (
+                          <div style={{ fontSize: 12, color: "#605C52", marginTop: 2 }}>📍 {slot.mission}</div>
+                        )}
+                        {slot.break_start && slot.break_end && (
+                          <div style={{ fontSize: 11.5, color: "#A8A398", marginTop: 2 }}>
+                            Pause : {slot.break_start.slice(0, 5)} – {slot.break_end.slice(0, 5)}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ))}
               </div>
             );
           })}
