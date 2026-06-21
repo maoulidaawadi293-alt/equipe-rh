@@ -2,11 +2,10 @@ import React, { useState, useEffect } from "react";
 import LoginPage from "./pages/LoginPage";
 import TimeclockPage from "./pages/TimeclockPage";
 import EmployerTeamPage from "./pages/EmployerTeamPage";
+import LeaveRequestsPage from "./pages/LeaveRequestsPage";
+import EmployerLeaveRequestsPage from "./pages/EmployerLeaveRequestsPage";
 import { getToken, clearToken } from "./api/client";
 
-// On vérifie si un token est déjà présent dans le localStorage
-// (l'utilisateur était déjà connecté d'une session précédente).
-// On stocke aussi le profil minimal pour savoir quel rôle afficher.
 function getSavedUser() {
   try {
     const raw = localStorage.getItem("equipe_rh_user");
@@ -20,15 +19,27 @@ function saveUser(user) {
   localStorage.setItem("equipe_rh_user", JSON.stringify(user));
 }
 
+const EMPLOYER_TABS = [
+  { key: "team", label: "Équipe" },
+  { key: "leave", label: "Congés" },
+];
+
+const EMPLOYEE_TABS = [
+  { key: "clock", label: "Pointage" },
+  { key: "leave", label: "Mes congés" },
+];
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
+  const [activeTab, setActiveTab] = useState(null);
 
   useEffect(() => {
     const token = getToken();
     const saved = getSavedUser();
     if (token && saved) {
-      setUser(saved); // session existante, on restaure le profil
+      setUser(saved);
+      setActiveTab(saved.role === "employer" ? "team" : "clock");
     }
     setReady(true);
   }, []);
@@ -36,6 +47,7 @@ export default function App() {
   function handleLoggedIn(userData) {
     saveUser(userData);
     setUser(userData);
+    setActiveTab(userData.role === "employer" ? "team" : "clock");
   }
 
   function handleLogout() {
@@ -44,11 +56,13 @@ export default function App() {
     setUser(null);
   }
 
-  if (!ready) return null; // bref instant avant de savoir si l'utilisateur est connecté
+  if (!ready) return null;
 
   if (!user) {
     return <LoginPage onLoggedIn={handleLoggedIn} />;
   }
+
+  const tabs = user.role === "employer" ? EMPLOYER_TABS : EMPLOYEE_TABS;
 
   return (
     <div style={{ minHeight: "100vh", background: "#FAF9F6", fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -71,9 +85,34 @@ export default function App() {
         </button>
       </div>
 
-      {/* Contenu principal (à enrichir avec un vrai routeur une fois qu'on ajoute d'autres pages) */}
-      {user.role === "employee" && <TimeclockPage user={user} />}
-      {user.role === "employer" && <EmployerTeamPage />}
+      {/* Barre d'onglets */}
+      <div style={{ background: "white", borderBottom: "1px solid #E7E5E1", padding: "0 24px", display: "flex", gap: 4 }}>
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            style={{
+              background: "none",
+              border: "none",
+              borderBottom: activeTab === tab.key ? "2px solid #1F1D1A" : "2px solid transparent",
+              padding: "12px 14px",
+              fontSize: 13.5,
+              fontWeight: activeTab === tab.key ? 700 : 500,
+              color: activeTab === tab.key ? "#1F1D1A" : "#8A8578",
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Contenu principal */}
+      {user.role === "employee" && activeTab === "clock" && <TimeclockPage user={user} />}
+      {user.role === "employee" && activeTab === "leave" && <LeaveRequestsPage />}
+      {user.role === "employer" && activeTab === "team" && <EmployerTeamPage />}
+      {user.role === "employer" && activeTab === "leave" && <EmployerLeaveRequestsPage />}
     </div>
   );
 }

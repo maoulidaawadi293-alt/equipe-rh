@@ -45,6 +45,12 @@ export const api = {
   createEmployee: (employee) => apiRequest("/employees", { method: "POST", body: employee }),
   updateEmployee: (id, employee) => apiRequest(`/employees/${id}`, { method: "PUT", body: employee }),
   deleteEmployee: (id) => apiRequest(`/employees/${id}`, { method: "DELETE" }),
+
+  // Congés
+  myLeaveRequests: () => apiRequest("/leave-requests/me"),
+  createLeaveRequest: (request) => apiRequest("/leave-requests", { method: "POST", body: request }),
+  teamLeaveRequests: () => apiRequest("/leave-requests/team"),
+  updateLeaveRequestStatus: (id, status) => apiRequest(`/leave-requests/${id}/status`, { method: "PUT", body: { status } }),
 };
 
 export function saveToken(token) {
