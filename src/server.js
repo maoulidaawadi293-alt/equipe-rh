@@ -7,6 +7,7 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/auth");
 const timeEntryRoutes = require("./routes/timeEntries");
+const employeesRoutes = require("./routes/employees");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -16,6 +17,7 @@ app.use(express.json()); // permet de lire le JSON envoyé dans le corps des req
 
 app.use("/api/auth", authRoutes);
 app.use("/api/time-entries", timeEntryRoutes);
+app.use("/api/employees", employeesRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
