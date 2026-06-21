@@ -28,6 +28,26 @@ async function apiRequest(path, { method = "GET", body } = {}) {
   return data;
 }
 
+// Variante pour l'upload de fichiers (FormData, pas de JSON.stringify, pas de Content-Type manuel)
+async function apiUpload(path, formData) {
+  const headers = {};
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || "Une erreur est survenue.");
+  }
+  return data;
+}
+
 export const api = {
   // Authentification
   register: (email, password, role) => apiRequest("/auth/register", { method: "POST", body: { email, password, role } }),
@@ -63,6 +83,11 @@ export const api = {
   createScheduleSlot: (slot) => apiRequest("/schedules", { method: "POST", body: slot }),
   updateScheduleSlot: (id, slot) => apiRequest(`/schedules/${id}`, { method: "PUT", body: slot }),
   deleteScheduleSlot: (id) => apiRequest(`/schedules/${id}`, { method: "DELETE" }),
+
+  // Documents
+  listDocuments: (employeeId) => apiRequest(employeeId ? `/documents?employee_id=${employeeId}` : "/documents"),
+  uploadDocument: (formData) => apiUpload("/documents", formData),
+  deleteDocument: (id) => apiRequest(`/documents/${id}`, { method: "DELETE" }),
 };
 
 export function saveToken(token) {

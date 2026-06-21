@@ -6,6 +6,8 @@ import LeaveRequestsPage from "./pages/LeaveRequestsPage";
 import EmployerLeaveRequestsPage from "./pages/EmployerLeaveRequestsPage";
 import EmployerSchedulePage from "./pages/EmployerSchedulePage";
 import MySchedulePage from "./pages/MySchedulePage";
+import EmployerDocumentsPage from "./pages/EmployerDocumentsPage";
+import MyDocumentsPage from "./pages/MyDocumentsPage";
 import NotificationBell from "./components/NotificationBell";
 import { getToken, clearToken } from "./api/client";
 
@@ -26,12 +28,14 @@ const EMPLOYER_TABS = [
   { key: "team", label: "Équipe" },
   { key: "leave", label: "Congés" },
   { key: "schedule", label: "Planning" },
+  { key: "documents", label: "Documents" },
 ];
 
 const EMPLOYEE_TABS = [
   { key: "clock", label: "Pointage" },
   { key: "leave", label: "Mes congés" },
   { key: "schedule", label: "Mon planning" },
+  { key: "documents", label: "Mes documents" },
 ];
 
 export default function App() {
@@ -94,7 +98,7 @@ export default function App() {
       </div>
 
       {/* Barre d'onglets */}
-      <div style={{ background: "white", borderBottom: "1px solid #E7E5E1", padding: "0 24px", display: "flex", gap: 4 }}>
+      <div style={{ background: "white", borderBottom: "1px solid #E7E5E1", padding: "0 24px", display: "flex", gap: 4, flexWrap: "wrap" }}>
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -120,9 +124,11 @@ export default function App() {
       {user.role === "employee" && activeTab === "clock" && <TimeclockPage user={user} />}
       {user.role === "employee" && activeTab === "leave" && <LeaveRequestsPage />}
       {user.role === "employee" && activeTab === "schedule" && <MySchedulePage />}
+      {user.role === "employee" && activeTab === "documents" && <MyDocumentsPage />}
       {user.role === "employer" && activeTab === "team" && <EmployerTeamPage />}
       {user.role === "employer" && activeTab === "leave" && <EmployerLeaveRequestsPage />}
       {user.role === "employer" && activeTab === "schedule" && <EmployerSchedulePage />}
+      {user.role === "employer" && activeTab === "documents" && <EmployerDocumentsPage />}
     </div>
   );
 }
