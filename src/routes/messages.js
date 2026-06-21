@@ -27,7 +27,6 @@ async function getEmployerUserId() {
 }
 
 // Liste la conversation directe entre le compte connecté et l'employeur (ou un salarié si on est employeur)
-// GET /api/messages/conversation?with=<userId>  (utilisé par l'employeur pour choisir le salarié)
 router.get("/conversation", requireAuth, async (req, res) => {
   try {
     let otherUserId;
@@ -88,7 +87,7 @@ router.post("/", requireAuth, upload.single("attachment"), async (req, res) => {
       const isAudio = req.file.mimetype.startsWith("audio/");
       const isImage = req.file.mimetype.startsWith("image/");
       attachmentKind = isAudio ? "audio" : isImage ? "image" : "file";
-      const resourceType = isAudio ? "video" : "auto"; // Cloudinary traite l'audio via "video"
+      const resourceType = isAudio ? "video" : isImage ? "image" : "raw";
       const uploadResult = await uploadToCloudinary(req.file.buffer, req.file.originalname, resourceType);
       attachmentUrl = uploadResult.secure_url;
     }
@@ -106,7 +105,6 @@ router.post("/", requireAuth, upload.single("attachment"), async (req, res) => {
       [req.user.userId, finalRecipientId, messageType, content || null, attachmentUrl, attachmentKind]
     );
 
-    // Notification pour le(s) destinataire(s)
     if (messageType === "direct") {
       await pool.query(
         `INSERT INTO notifications (user_id, audience, message) VALUES ($1, 'user', $2)`,
