@@ -13,6 +13,7 @@ const notificationsRoutes = require("./routes/notifications");
 const schedulesRoutes = require("./routes/schedules");
 const documentsRoutes = require("./routes/documents");
 const messagesRoutes = require("./routes/messages");
+const weeklyReportsRoutes = require("./routes/weeklyReports");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -28,6 +29,7 @@ app.use("/api/notifications", notificationsRoutes);
 app.use("/api/schedules", schedulesRoutes);
 app.use("/api/documents", documentsRoutes);
 app.use("/api/messages", messagesRoutes);
+app.use("/api/weekly-reports", weeklyReportsRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

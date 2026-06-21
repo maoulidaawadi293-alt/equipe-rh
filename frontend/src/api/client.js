@@ -93,6 +93,12 @@ export const api = {
   getConversation: (withUserId) => apiRequest(withUserId ? `/messages/conversation?with=${withUserId}` : "/messages/conversation"),
   getBroadcastMessages: () => apiRequest("/messages/broadcast"),
   sendMessage: (formData) => apiUpload("/messages", formData),
+
+  // Bilan hebdomadaire
+  myWeeklyReport: (weekStart) => apiRequest(`/weekly-reports/me?week_start=${weekStart}`),
+  addWeeklyReportEntry: (formData) => apiUpload("/weekly-reports/entries", formData),
+  teamWeeklyReports: (weekStart) => apiRequest(`/weekly-reports/team?week_start=${weekStart}`),
+  commentWeeklyReport: (id, comment) => apiRequest(`/weekly-reports/${id}/comment`, { method: "PUT", body: { comment } }),
 };
 
 export function saveToken(token) {
