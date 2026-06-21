@@ -8,6 +8,8 @@ import EmployerSchedulePage from "./pages/EmployerSchedulePage";
 import MySchedulePage from "./pages/MySchedulePage";
 import EmployerDocumentsPage from "./pages/EmployerDocumentsPage";
 import MyDocumentsPage from "./pages/MyDocumentsPage";
+import EmployerMessagesPage from "./pages/EmployerMessagesPage";
+import MyMessagesPage from "./pages/MyMessagesPage";
 import NotificationBell from "./components/NotificationBell";
 import { getToken, clearToken } from "./api/client";
 
@@ -29,6 +31,7 @@ const EMPLOYER_TABS = [
   { key: "leave", label: "Congés" },
   { key: "schedule", label: "Planning" },
   { key: "documents", label: "Documents" },
+  { key: "messages", label: "Messages" },
 ];
 
 const EMPLOYEE_TABS = [
@@ -36,6 +39,7 @@ const EMPLOYEE_TABS = [
   { key: "leave", label: "Mes congés" },
   { key: "schedule", label: "Mon planning" },
   { key: "documents", label: "Mes documents" },
+  { key: "messages", label: "Messages" },
 ];
 
 export default function App() {
@@ -125,10 +129,12 @@ export default function App() {
       {user.role === "employee" && activeTab === "leave" && <LeaveRequestsPage />}
       {user.role === "employee" && activeTab === "schedule" && <MySchedulePage />}
       {user.role === "employee" && activeTab === "documents" && <MyDocumentsPage />}
+      {user.role === "employee" && activeTab === "messages" && <MyMessagesPage />}
       {user.role === "employer" && activeTab === "team" && <EmployerTeamPage />}
       {user.role === "employer" && activeTab === "leave" && <EmployerLeaveRequestsPage />}
       {user.role === "employer" && activeTab === "schedule" && <EmployerSchedulePage />}
       {user.role === "employer" && activeTab === "documents" && <EmployerDocumentsPage />}
+      {user.role === "employer" && activeTab === "messages" && <EmployerMessagesPage />}
     </div>
   );
 }

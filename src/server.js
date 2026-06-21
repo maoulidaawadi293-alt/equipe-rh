@@ -12,6 +12,7 @@ const leaveRequestsRoutes = require("./routes/leaveRequests");
 const notificationsRoutes = require("./routes/notifications");
 const schedulesRoutes = require("./routes/schedules");
 const documentsRoutes = require("./routes/documents");
+const messagesRoutes = require("./routes/messages");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -26,6 +27,7 @@ app.use("/api/leave-requests", leaveRequestsRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/schedules", schedulesRoutes);
 app.use("/api/documents", documentsRoutes);
+app.use("/api/messages", messagesRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

@@ -88,6 +88,11 @@ export const api = {
   listDocuments: (employeeId) => apiRequest(employeeId ? `/documents?employee_id=${employeeId}` : "/documents"),
   uploadDocument: (formData) => apiUpload("/documents", formData),
   deleteDocument: (id) => apiRequest(`/documents/${id}`, { method: "DELETE" }),
+
+  // Messagerie
+  getConversation: (withUserId) => apiRequest(withUserId ? `/messages/conversation?with=${withUserId}` : "/messages/conversation"),
+  getBroadcastMessages: () => apiRequest("/messages/broadcast"),
+  sendMessage: (formData) => apiUpload("/messages", formData),
 };
 
 export function saveToken(token) {
