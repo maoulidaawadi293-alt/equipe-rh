@@ -1,6 +1,6 @@
 const express = require("express");
 const pool = require("../db/pool");
-const requireAuth = require("../middleware/auth");
+const { requireAuth, requireEmployer } = require("../middleware/requireAuth");
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ router.get("/me", requireAuth, async (req, res) => {
     const result = await pool.query(
       `SELECT id, user_id, name, role_title, team, color, leave_quota, rtt_quota
        FROM employees WHERE user_id = $1`,
-      [req.user.id]
+      [req.user.userId]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Aucune fiche salarié associée" });
@@ -37,10 +37,7 @@ router.get("/me", requireAuth, async (req, res) => {
 });
 
 // Crée un nouveau salarié (employeur uniquement)
-router.post("/", requireAuth, async (req, res) => {
-  if (req.user.role !== "employer") {
-    return res.status(403).json({ error: "Réservé à l'employeur" });
-  }
+router.post("/", requireEmployer, async (req, res) => {
   const { name, role_title, team, color, leave_quota, rtt_quota } = req.body;
   if (!name || !role_title || !team) {
     return res.status(400).json({ error: "Nom, poste et équipe sont requis" });
@@ -60,10 +57,7 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 // Modifie un salarié existant (employeur uniquement)
-router.put("/:id", requireAuth, async (req, res) => {
-  if (req.user.role !== "employer") {
-    return res.status(403).json({ error: "Réservé à l'employeur" });
-  }
+router.put("/:id", requireEmployer, async (req, res) => {
   const { id } = req.params;
   const { name, role_title, team, color, leave_quota, rtt_quota } = req.body;
   try {
@@ -90,10 +84,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 });
 
 // Supprime un salarié (employeur uniquement)
-router.delete("/:id", requireAuth, async (req, res) => {
-  if (req.user.role !== "employer") {
-    return res.status(403).json({ error: "Réservé à l'employeur" });
-  }
+router.delete("/:id", requireEmployer, async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query(
