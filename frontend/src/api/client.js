@@ -51,6 +51,11 @@ export const api = {
   createLeaveRequest: (request) => apiRequest("/leave-requests", { method: "POST", body: request }),
   teamLeaveRequests: () => apiRequest("/leave-requests/team"),
   updateLeaveRequestStatus: (id, status) => apiRequest(`/leave-requests/${id}/status`, { method: "PUT", body: { status } }),
+
+  // Notifications
+  listNotifications: () => apiRequest("/notifications"),
+  markNotificationRead: (id) => apiRequest(`/notifications/${id}/read`, { method: "PUT" }),
+  markAllNotificationsRead: () => apiRequest("/notifications/read-all", { method: "PUT" }),
 };
 
 export function saveToken(token) {

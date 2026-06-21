@@ -4,6 +4,7 @@ import TimeclockPage from "./pages/TimeclockPage";
 import EmployerTeamPage from "./pages/EmployerTeamPage";
 import LeaveRequestsPage from "./pages/LeaveRequestsPage";
 import EmployerLeaveRequestsPage from "./pages/EmployerLeaveRequestsPage";
+import NotificationBell from "./components/NotificationBell";
 import { getToken, clearToken } from "./api/client";
 
 function getSavedUser() {
@@ -77,12 +78,15 @@ export default function App() {
             {user.role === "employer" ? "Espace employeur" : "Espace salarié"}
           </span>
         </div>
-        <button
-          onClick={handleLogout}
-          style={{ background: "none", border: "1px solid #D8D4CC", borderRadius: 8, padding: "7px 13px", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#605C52", fontFamily: "inherit" }}
-        >
-          Déconnexion
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <NotificationBell />
+          <button
+            onClick={handleLogout}
+            style={{ background: "none", border: "1px solid #D8D4CC", borderRadius: 8, padding: "7px 13px", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#605C52", fontFamily: "inherit" }}
+          >
+            Déconnexion
+          </button>
+        </div>
       </div>
 
       {/* Barre d'onglets */}

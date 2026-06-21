@@ -21,7 +21,6 @@ router.get("/me", requireAuth, async (req, res) => {
       [employee.id]
     );
 
-    // Calcul du solde : quota - jours approuvés ou en attente (type congés uniquement)
     const usedDaysResult = await pool.query(
       `SELECT COALESCE(SUM((end_date - start_date) + 1), 0) AS used
        FROM leave_requests
@@ -38,7 +37,7 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 });
 
-// Crée une nouvelle demande de congé (salarié)
+// Crée une nouvelle demande de congé (salarié) + notifie l'employeur
 router.post("/", requireAuth, async (req, res) => {
   const { start_date, end_date, type, reason } = req.body;
   if (!start_date || !end_date) {
@@ -46,20 +45,27 @@ router.post("/", requireAuth, async (req, res) => {
   }
   try {
     const employeeResult = await pool.query(
-      `SELECT id FROM employees WHERE user_id = $1`,
+      `SELECT id, name FROM employees WHERE user_id = $1`,
       [req.user.userId]
     );
     if (employeeResult.rows.length === 0) {
       return res.status(404).json({ error: "Aucune fiche salarié associée" });
     }
-    const employeeId = employeeResult.rows[0].id;
+    const employee = employeeResult.rows[0];
 
     const result = await pool.query(
       `INSERT INTO leave_requests (employee_id, start_date, end_date, type, reason)
        VALUES ($1, $2, $3, COALESCE($4, 'conges'), $5)
        RETURNING *`,
-      [employeeId, start_date, end_date, type, reason]
+      [employee.id, start_date, end_date, type, reason]
     );
+
+    // Notification pour l'employeur
+    await pool.query(
+      `INSERT INTO notifications (audience, message) VALUES ('employer', $1)`,
+      [`${employee.name} a fait une demande de congé du ${start_date} au ${end_date}.`]
+    );
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error("Erreur creation leave request:", err);
@@ -83,7 +89,7 @@ router.get("/team", requireEmployer, async (req, res) => {
   }
 });
 
-// Valide ou refuse une demande (employeur)
+// Valide ou refuse une demande (employeur) + notifie le salarié
 router.put("/:id/status", requireEmployer, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -98,7 +104,24 @@ router.put("/:id/status", requireEmployer, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Demande introuvable" });
     }
-    res.json(result.rows[0]);
+    const updated = result.rows[0];
+
+    // On retrouve l'utilisateur (user_id) lié à ce salarié pour le notifier
+    const employeeResult = await pool.query(
+      `SELECT user_id FROM employees WHERE id = $1`,
+      [updated.employee_id]
+    );
+    const userId = employeeResult.rows[0]?.user_id;
+
+    if (userId) {
+      const statusText = status === "approved" ? "validée" : "refusée";
+      await pool.query(
+        `INSERT INTO notifications (user_id, audience, message) VALUES ($1, 'user', $2)`,
+        [userId, `Votre demande de congé du ${updated.start_date} au ${updated.end_date} a été ${statusText}.`]
+      );
+    }
+
+    res.json(updated);
   } catch (err) {
     console.error("Erreur update leave request:", err);
     res.status(500).json({ error: "Erreur serveur" });
