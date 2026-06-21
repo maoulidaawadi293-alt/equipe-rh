@@ -10,6 +10,7 @@ const timeEntryRoutes = require("./routes/timeEntries");
 const employeesRoutes = require("./routes/employees");
 const leaveRequestsRoutes = require("./routes/leaveRequests");
 const notificationsRoutes = require("./routes/notifications");
+const schedulesRoutes = require("./routes/schedules");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -22,6 +23,7 @@ app.use("/api/time-entries", timeEntryRoutes);
 app.use("/api/employees", employeesRoutes);
 app.use("/api/leave-requests", leaveRequestsRoutes);
 app.use("/api/notifications", notificationsRoutes);
+app.use("/api/schedules", schedulesRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

@@ -4,6 +4,8 @@ import TimeclockPage from "./pages/TimeclockPage";
 import EmployerTeamPage from "./pages/EmployerTeamPage";
 import LeaveRequestsPage from "./pages/LeaveRequestsPage";
 import EmployerLeaveRequestsPage from "./pages/EmployerLeaveRequestsPage";
+import EmployerSchedulePage from "./pages/EmployerSchedulePage";
+import MySchedulePage from "./pages/MySchedulePage";
 import NotificationBell from "./components/NotificationBell";
 import { getToken, clearToken } from "./api/client";
 
@@ -23,11 +25,13 @@ function saveUser(user) {
 const EMPLOYER_TABS = [
   { key: "team", label: "Équipe" },
   { key: "leave", label: "Congés" },
+  { key: "schedule", label: "Planning" },
 ];
 
 const EMPLOYEE_TABS = [
   { key: "clock", label: "Pointage" },
   { key: "leave", label: "Mes congés" },
+  { key: "schedule", label: "Mon planning" },
 ];
 
 export default function App() {
@@ -115,8 +119,10 @@ export default function App() {
       {/* Contenu principal */}
       {user.role === "employee" && activeTab === "clock" && <TimeclockPage user={user} />}
       {user.role === "employee" && activeTab === "leave" && <LeaveRequestsPage />}
+      {user.role === "employee" && activeTab === "schedule" && <MySchedulePage />}
       {user.role === "employer" && activeTab === "team" && <EmployerTeamPage />}
       {user.role === "employer" && activeTab === "leave" && <EmployerLeaveRequestsPage />}
+      {user.role === "employer" && activeTab === "schedule" && <EmployerSchedulePage />}
     </div>
   );
 }

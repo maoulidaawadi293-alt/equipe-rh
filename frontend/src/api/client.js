@@ -56,6 +56,11 @@ export const api = {
   listNotifications: () => apiRequest("/notifications"),
   markNotificationRead: (id) => apiRequest(`/notifications/${id}/read`, { method: "PUT" }),
   markAllNotificationsRead: () => apiRequest("/notifications/read-all", { method: "PUT" }),
+
+  // Plannings
+  teamSchedule: (weekStart) => apiRequest(`/schedules/team?week_start=${weekStart}`),
+  mySchedule: (weekStart) => apiRequest(`/schedules/me?week_start=${weekStart}`),
+  saveScheduleSlot: (slot) => apiRequest("/schedules", { method: "PUT", body: slot }),
 };
 
 export function saveToken(token) {
