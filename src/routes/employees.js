@@ -1,15 +1,30 @@
 const express = require("express");
+const bcrypt = require("bcryptjs");
 const pool = require("../db/pool");
 const { requireAuth, requireEmployer } = require("../middleware/requireAuth");
+const { sendWelcomeEmail } = require("../email");
 
 const router = express.Router();
+const SALT_ROUNDS = 10;
+
+function generateTempPassword() {
+  // Mot de passe temporaire lisible, ex: "Rk4mP9qX"
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let pwd = "";
+  for (let i = 0; i < 10; i++) {
+    pwd += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return pwd;
+}
 
 // Liste tous les salariés (employeur uniquement)
 router.get("/", requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, user_id, name, role_title, team, color, leave_quota, rtt_quota, created_at
-       FROM employees ORDER BY created_at ASC`
+      `SELECT e.id, e.user_id, e.name, e.role_title, e.team, e.color, e.leave_quota, e.rtt_quota, e.created_at, u.email
+       FROM employees e
+       LEFT JOIN users u ON u.id = e.user_id
+       ORDER BY e.created_at ASC`
     );
     res.json(result.rows);
   } catch (err) {
@@ -36,23 +51,49 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 });
 
-// Crée un nouveau salarié (employeur uniquement)
+// Crée un nouveau salarié + son compte de connexion (employeur uniquement)
 router.post("/", requireEmployer, async (req, res) => {
-  const { name, role_title, team, color, leave_quota, rtt_quota } = req.body;
-  if (!name || !role_title || !team) {
-    return res.status(400).json({ error: "Nom, poste et équipe sont requis" });
+  const { name, role_title, team, email, color, leave_quota, rtt_quota } = req.body;
+  if (!name || !role_title || !team || !email) {
+    return res.status(400).json({ error: "Nom, poste, équipe et email sont requis" });
   }
+
+  const client = await pool.connect();
   try {
-    const result = await pool.query(
-      `INSERT INTO employees (name, role_title, team, color, leave_quota, rtt_quota)
-       VALUES ($1, $2, $3, COALESCE($4, '#2563EB'), COALESCE($5, 25), COALESCE($6, 10))
-       RETURNING *`,
-      [name, role_title, team, color, leave_quota, rtt_quota]
+    const existing = await client.query("SELECT id FROM users WHERE email = $1", [email]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: "Un compte existe déjà avec cet email." });
+    }
+
+    const tempPassword = generateTempPassword();
+    const passwordHash = await bcrypt.hash(tempPassword, SALT_ROUNDS);
+
+    await client.query("BEGIN");
+
+    const userResult = await client.query(
+      `INSERT INTO users (email, password_hash, role) VALUES ($1, $2, 'employee') RETURNING id`,
+      [email, passwordHash]
     );
-    res.status(201).json(result.rows[0]);
+    const userId = userResult.rows[0].id;
+
+    const employeeResult = await client.query(
+      `INSERT INTO employees (user_id, name, role_title, team, color, leave_quota, rtt_quota)
+       VALUES ($1, $2, $3, $4, COALESCE($5, '#2563EB'), COALESCE($6, 25), COALESCE($7, 10))
+       RETURNING *`,
+      [userId, name, role_title, team, color, leave_quota, rtt_quota]
+    );
+
+    await client.query("COMMIT");
+
+    const emailSent = await sendWelcomeEmail({ to: email, name, password: tempPassword });
+
+    res.status(201).json({ ...employeeResult.rows[0], email, emailSent });
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error("Erreur creation employee:", err);
     res.status(500).json({ error: "Erreur serveur" });
+  } finally {
+    client.release();
   }
 });
 
