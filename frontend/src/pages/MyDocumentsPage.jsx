@@ -59,6 +59,7 @@ export default function MyDocumentsPage() {
               href={doc.file_url}
               target="_blank"
               rel="noopener noreferrer"
+              download
               style={{
                 fontSize: 12.5, fontWeight: 600, color: "white", background: "#1F1D1A",
                 textDecoration: "none", padding: "6px 14px", borderRadius: 7,

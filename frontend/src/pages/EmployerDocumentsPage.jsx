@@ -160,8 +160,14 @@ export default function EmployerDocumentsPage() {
                   <div style={{ fontSize: 13.5, fontWeight: 600, color: "#1F1D1A" }}>{doc.title}</div>
                   <div style={{ fontSize: 12, color: "#8A8578" }}>{TYPE_LABELS[doc.type]} · {formatDate(doc.created_at)}</div>
                 </div>
-                <a href={doc.file_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12.5, fontWeight: 600, color: "#2563EB", textDecoration: "none" }}>
-                  Ouvrir
+                <a
+                  href={doc.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  style={{ fontSize: 12.5, fontWeight: 600, color: "#2563EB", textDecoration: "none" }}
+                >
+                  Télécharger
                 </a>
                 <button
                   onClick={() => handleDelete(doc.id)}
