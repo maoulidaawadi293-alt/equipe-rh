@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import LoginPage from "./pages/LoginPage";
 import TimeclockPage from "./pages/TimeclockPage";
+import EmployerDashboardPage from "./pages/EmployerDashboardPage";
 import EmployerTeamPage from "./pages/EmployerTeamPage";
 import LeaveRequestsPage from "./pages/LeaveRequestsPage";
 import EmployerLeaveRequestsPage from "./pages/EmployerLeaveRequestsPage";
@@ -29,6 +30,7 @@ function saveUser(user) {
 }
 
 const EMPLOYER_TABS = [
+  { key: "dashboard", label: "Vue d'ensemble" },
   { key: "team", label: "Équipe" },
   { key: "leave", label: "Congés" },
   { key: "schedule", label: "Planning" },
@@ -56,7 +58,7 @@ export default function App() {
     const saved = getSavedUser();
     if (token && saved) {
       setUser(saved);
-      setActiveTab(saved.role === "employer" ? "team" : "clock");
+      setActiveTab(saved.role === "employer" ? "dashboard" : "clock");
     }
     setReady(true);
   }, []);
@@ -64,7 +66,7 @@ export default function App() {
   function handleLoggedIn(userData) {
     saveUser(userData);
     setUser(userData);
-    setActiveTab(userData.role === "employer" ? "team" : "clock");
+    setActiveTab(userData.role === "employer" ? "dashboard" : "clock");
   }
 
   function handleLogout() {
@@ -135,6 +137,7 @@ export default function App() {
       {user.role === "employee" && activeTab === "documents" && <MyDocumentsPage />}
       {user.role === "employee" && activeTab === "messages" && <MyMessagesPage />}
       {user.role === "employee" && activeTab === "reports" && <MyWeeklyReportPage />}
+      {user.role === "employer" && activeTab === "dashboard" && <EmployerDashboardPage />}
       {user.role === "employer" && activeTab === "team" && <EmployerTeamPage />}
       {user.role === "employer" && activeTab === "leave" && <EmployerLeaveRequestsPage />}
       {user.role === "employer" && activeTab === "schedule" && <EmployerSchedulePage />}

@@ -5,12 +5,27 @@ const cloudinary = require("../cloudinary");
 const { requireAuth, requireEmployer } = require("../middleware/requireAuth");
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } }); // 10 Mo max
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-function uploadToCloudinary(buffer, filename) {
+function uploadToCloudinary(buffer, originalname, mimetype) {
+  const isImage = mimetype.startsWith("image/");
+  const isPDF = mimetype === "application/pdf";
+  const resourceType = isImage ? "image" : "raw";
+
+  // On garde l'extension originale dans le public_id pour que l'URL soit correcte
+  const ext = originalname.split(".").pop();
+  const baseName = originalname.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9-_]/g, "_");
+  const publicId = `${baseName}_${Date.now()}.${ext}`;
+
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { resource_type: "auto", folder: "equipe-rh-documents", public_id: filename.replace(/\.[^/.]+$/, "") },
+      {
+        resource_type: resourceType,
+        folder: "equipe-rh-documents",
+        public_id: publicId,
+        use_filename: true,
+        unique_filename: false,
+      },
       (error, result) => {
         if (error) reject(error);
         else resolve(result);
@@ -20,7 +35,7 @@ function uploadToCloudinary(buffer, filename) {
   });
 }
 
-// Liste les documents d'un salarié (employeur, via ?employee_id=) ou du salarié connecté
+// Liste les documents d'un salarié
 router.get("/", requireAuth, async (req, res) => {
   try {
     let employeeId;
@@ -49,36 +64,4 @@ router.get("/", requireAuth, async (req, res) => {
 router.post("/", requireEmployer, upload.single("file"), async (req, res) => {
   const { employee_id, title, type } = req.body;
   if (!employee_id || !title || !req.file) {
-    return res.status(400).json({ error: "employee_id, title et un fichier sont requis" });
-  }
-  try {
-    const uploadResult = await uploadToCloudinary(req.file.buffer, req.file.originalname);
-    const result = await pool.query(
-      `INSERT INTO documents (employee_id, title, type, file_url, uploaded_by)
-       VALUES ($1, $2, COALESCE($3, 'autre'), $4, $5)
-       RETURNING *`,
-      [employee_id, title, type, uploadResult.secure_url, req.user.userId]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Erreur upload document:", err);
-    res.status(500).json({ error: "Erreur lors de l'envoi du document" });
-  }
-});
-
-// Supprime un document (employeur uniquement)
-router.delete("/:id", requireEmployer, async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await pool.query(`DELETE FROM documents WHERE id = $1 RETURNING id`, [id]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Document introuvable" });
-    }
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Erreur suppression document:", err);
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-});
-
-module.exports = router;
+    return res.sta
